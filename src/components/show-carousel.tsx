@@ -1,12 +1,12 @@
 "use client"
-import { useSnapCarousel } from "react-snap-carousel"
 import type { Show } from "~/lib/types"
-import { useRef } from "react"
-import { useDraggable } from "react-use-draggable-scroll"
-import { Button } from "./ui/button"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { useCallback, useEffect, useRef, useState } from "react"
+import { ChevronLeft, ChevronRight, Play, Plus, Check, ThumbsUp, ChevronDown } from "lucide-react"
 import Link from "next/link"
-import { type MutableRefObject, type RefCallback } from "react"
+import Image from "next/image"
+import { cn } from "~/lib/utils"
+import { useMyList } from "~/components/my-list-provider"
+import { fetchTrailerKey } from "~/lib/trailer"
 
 export function ShowsCarousel({
   title,
@@ -15,80 +15,225 @@ export function ShowsCarousel({
   title: string
   shows: Show[]
 }) {
-  const { scrollRef, next, prev } = useSnapCarousel()
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [canLeft, setCanLeft] = useState(false)
+  const [canRight, setCanRight] = useState(true)
 
-  const dragRef =
-    useRef<HTMLDivElement>() as React.MutableRefObject<HTMLInputElement>
-  const { events } = useDraggable(dragRef)
+  const updateArrows = useCallback(() => {
+    const el = scrollRef.current
+    if (!el) return
+    setCanLeft(el.scrollLeft > 8)
+    setCanRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 8)
+  }, [])
+
+  useEffect(() => {
+    updateArrows()
+    const el = scrollRef.current
+    if (!el) return
+    el.addEventListener("scroll", updateArrows, { passive: true })
+    window.addEventListener("resize", updateArrows)
+    return () => {
+      el.removeEventListener("scroll", updateArrows)
+      window.removeEventListener("resize", updateArrows)
+    }
+  }, [updateArrows])
+
+  function page(dir: 1 | -1) {
+    const el = scrollRef.current
+    if (!el) return
+    el.scrollBy({ left: dir * el.clientWidth * 0.9, behavior: "smooth" })
+  }
 
   return (
-    <section>
-      <div className="w-full max-w-screen-2xl space-y-1 sm:space-y-2.5">
-        <h2 className="text-lg font-semibold md:text-xl">{title}</h2>
-        <div className="group relative flex items-center">
-          <Button
-            aria-label="scroll left"
-            variant="ghost"
-            className="absolute left-0 z-10 h-[90px] rounded-none rounded-r bg-slate-950/50 px-2 py-0 opacity-0 group-hover:opacity-100 hover:bg-slate-950/75 md:h-[135px] mobile:hidden"
-            onClick={() => prev()}
-          >
-            <ChevronLeft className="h-8 w-8 text-white" aria-hidden="true" />
-          </Button>
-          <Button
-            aria-label="scroll right"
-            variant="ghost"
-            className="absolute right-0 z-10 h-[90px] rounded-none rounded-l bg-slate-950/50 px-2 py-0 opacity-0 group-hover:opacity-100 hover:bg-slate-950/75 md:h-[135px] mobile:hidden"
-            onClick={() => next()}
-          >
-            <ChevronRight className="h-8 w-8 text-white" aria-hidden="true" />
-          </Button>
-          <div
-            className="flex gap-1.5 overflow-auto py-2 scrollbar-none"
-            ref={mergeRefs(dragRef, scrollRef)}
-            {...events}
-          >
-            {shows.map((show) => (
-              <Link
-                href={`/show/${show.id}?mediaType=${
-                  show.title ? "movie" : "tv"
-                }`}
-                scroll={false}
-                key={show.id}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={`https://image.tmdb.org/t/p/w300${
-                    show.backdrop_path ?? show.poster_path
-                  }`}
-                  alt="show-backdrop"
-                  width={240}
-                  height={135}
-                  className="aspect-video min-w-[160px] object-cover transition-transform hover:scale-110 md:min-w-[240px]"
-                />
-              </Link>
-            ))}
-          </div>
+    <section className="group/row relative">
+      <h2 className="mb-2 text-lg font-semibold text-white md:text-xl">
+        {title}
+      </h2>
+
+      <div className="relative">
+        <button
+          type="button"
+          aria-label="Önceki"
+          onClick={() => page(-1)}
+          className={cn(
+            "absolute inset-y-0 left-0 z-30 flex w-10 items-center justify-center bg-gradient-to-r from-black/70 to-transparent text-white opacity-0 transition group-hover/row:opacity-100 hover:from-black/90 mobile:hidden",
+            !canLeft && "pointer-events-none !opacity-0",
+          )}
+        >
+          <ChevronLeft className="h-9 w-9 drop-shadow" />
+        </button>
+        <button
+          type="button"
+          aria-label="Sonraki"
+          onClick={() => page(1)}
+          className={cn(
+            "absolute inset-y-0 right-0 z-30 flex w-10 items-center justify-center bg-gradient-to-l from-black/70 to-transparent text-white opacity-0 transition group-hover/row:opacity-100 hover:from-black/90 mobile:hidden",
+            !canRight && "pointer-events-none !opacity-0",
+          )}
+        >
+          <ChevronRight className="h-9 w-9 drop-shadow" />
+        </button>
+
+        <div
+          ref={scrollRef}
+          className="flex snap-x snap-mandatory gap-2 overflow-x-auto overflow-y-visible scroll-smooth py-10 scrollbar-none md:snap-none"
+        >
+          {shows.map((show, i) => (
+            <CarouselTile
+              key={show.id}
+              show={show}
+              isFirst={i === 0}
+              isLast={i === shows.length - 1}
+            />
+          ))}
         </div>
       </div>
     </section>
   )
 }
 
-type MutableRefList<T> = Array<
-  RefCallback<T> | MutableRefObject<T> | undefined | null
->
-function mergeRefs<T>(...refs: MutableRefList<T>): RefCallback<T> {
-  return (val: T) => {
-    setRef(val, ...refs)
-  }
-}
+function CarouselTile({
+  show,
+  isFirst,
+  isLast,
+}: {
+  show: Show
+  isFirst: boolean
+  isLast: boolean
+}) {
+  const [hovered, setHovered] = useState(false)
+  const [trailerKey, setTrailerKey] = useState<string | null>(null)
+  const [showTrailer, setShowTrailer] = useState(false)
+  const timer = useRef<ReturnType<typeof setTimeout>>()
+  const trailerTimer = useRef<ReturnType<typeof setTimeout>>()
+  const { isSaved, toggle, isLiked, toggleLikeShow } = useMyList()
 
-function setRef<T>(val: T, ...refs: MutableRefList<T>): void {
-  refs.forEach((ref) => {
-    if (typeof ref === "function") {
-      ref(val)
-    } else if (ref != null) {
-      ref.current = val
-    }
-  })
+  const mediaType = show.title ? "movie" : "tv"
+  const title = show.title ?? show.name ?? "Untitled"
+  const poster = show.poster_path ?? show.backdrop_path
+  const saved = isSaved(show.id)
+  const liked = isLiked(show.id)
+
+  function enter() {
+    timer.current = setTimeout(() => {
+      setHovered(true)
+      void fetchTrailerKey(show.id, mediaType).then((key) => {
+        if (!key) return
+        setTrailerKey(key)
+        trailerTimer.current = setTimeout(() => setShowTrailer(true), 600)
+      })
+    }, 350)
+  }
+  function leave() {
+    if (timer.current) clearTimeout(timer.current)
+    if (trailerTimer.current) clearTimeout(trailerTimer.current)
+    setHovered(false)
+    setShowTrailer(false)
+  }
+
+  useEffect(
+    () => () => {
+      if (timer.current) clearTimeout(timer.current)
+      if (trailerTimer.current) clearTimeout(trailerTimer.current)
+    },
+    [],
+  )
+
+  return (
+    <div
+      onMouseEnter={enter}
+      onMouseLeave={leave}
+      className="relative w-[30vw] shrink-0 snap-start sm:w-[22vw] md:w-[18vw] lg:w-[15vw] xl:w-[13vw]"
+    >
+      <div
+        className={cn(
+          "relative transition-transform duration-300 ease-out",
+          hovered ? "z-40 scale-[1.22] drop-shadow-2xl" : "z-0 scale-100",
+          isFirst ? "origin-left" : isLast ? "origin-right" : "origin-center",
+        )}
+      >
+        <Link
+          href={`/show/${show.id}?mediaType=${mediaType}`}
+          scroll={false}
+          aria-label={title}
+          className="block overflow-hidden rounded-md bg-neutral-800 shadow-lg outline-none ring-white focus-visible:ring-2"
+        >
+          <div className="relative aspect-[2/3] w-full overflow-hidden">
+            <Image
+              src={`https://image.tmdb.org/t/p/w500${poster}`}
+              alt={title}
+              fill
+              sizes="(max-width: 640px) 30vw, (max-width: 768px) 22vw, (max-width: 1024px) 18vw, (max-width: 1280px) 15vw, 13vw"
+              className="object-cover"
+              draggable={false}
+            />
+            {showTrailer && trailerKey && (
+              <iframe
+                src={`https://www.youtube.com/embed/${trailerKey}?autoplay=1&mute=1&controls=0&loop=1&playlist=${trailerKey}&modestbranding=1&rel=0&playsinline=1&disablekb=1`}
+                allow="autoplay; encrypted-media"
+                tabIndex={-1}
+                className="pointer-events-none absolute left-1/2 top-1/2 h-full w-[267%] -translate-x-1/2 -translate-y-1/2"
+              />
+            )}
+          </div>
+        </Link>
+
+        <div
+          className={cn(
+            "absolute inset-x-0 bottom-0 rounded-b-md bg-gradient-to-t from-black via-black/85 to-transparent p-2.5 transition-opacity duration-200",
+            hovered ? "opacity-100" : "pointer-events-none opacity-0",
+          )}
+        >
+          <div className="mb-2 flex items-center gap-1.5">
+            <Link
+              href={`/watch/${show.id}?mediaType=${mediaType}`}
+              aria-label={`${title} oynat`}
+              className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-black transition hover:bg-white/80"
+            >
+              <Play className="h-3.5 w-3.5 fill-black" />
+            </Link>
+            <button
+              type="button"
+              onClick={() => toggle(show.id, mediaType)}
+              aria-label={saved ? "Listemden çıkar" : "Listeme ekle"}
+              className="flex h-7 w-7 items-center justify-center rounded-full border border-white/60 bg-black/40 text-white transition hover:border-white"
+            >
+              {saved ? (
+                <Check className="h-3.5 w-3.5" />
+              ) : (
+                <Plus className="h-3.5 w-3.5" />
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => toggleLikeShow(show.id, mediaType)}
+              aria-label={liked ? "Beğeniyi kaldır" : "Beğen"}
+              className={cn(
+                "flex h-7 w-7 items-center justify-center rounded-full border bg-black/40 transition hover:border-white",
+                liked
+                  ? "border-white bg-white text-black"
+                  : "border-white/60 text-white",
+              )}
+            >
+              <ThumbsUp className={cn("h-3.5 w-3.5", liked && "fill-black")} />
+            </button>
+            <Link
+              href={`/show/${show.id}?mediaType=${mediaType}`}
+              scroll={false}
+              aria-label="Detaylar"
+              className="ml-auto flex h-7 w-7 items-center justify-center rounded-full border border-white/60 bg-black/40 text-white transition hover:border-white"
+            >
+              <ChevronDown className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+          <p className="line-clamp-1 text-[11px] font-semibold text-white">
+            {title}
+          </p>
+          <p className="text-[11px] font-medium text-[#46d369]">
+            {Math.round(show.vote_average * 10)}% Eşleşme
+          </p>
+        </div>
+      </div>
+    </div>
+  )
 }

@@ -2,13 +2,21 @@ import "~/lib/globals.css"
 import { Inter } from "next/font/google"
 import { cn } from "~/lib/utils"
 import { ThemeProvider } from "~/components/theme-provider"
+import { LocaleProvider } from "~/components/locale-provider"
 import { ClerkProvider } from "@clerk/nextjs"
 import { Toaster } from "~/components/ui/toaster"
 import { Analytics } from "@vercel/analytics/react"
+import { getLocale } from "~/lib/i18n/get-locale"
+import { getDictionary } from "~/lib/i18n/get-dictionary"
 
-export const runtime = "edge"
-export const preferredRegion = "iad1"
 const inter = Inter({ subsets: ["latin"] })
+
+const clerkSignInUrl = process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL ?? "/sign-in"
+const clerkSignUpUrl = process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL ?? "/sign-up"
+const clerkAfterSignInUrl =
+  process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL ?? "/"
+const clerkAfterSignUpUrl =
+  process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL ?? "/"
 
 const siteConfig = {
   title: "Netflix Clone",
@@ -18,7 +26,7 @@ const siteConfig = {
   siteName: "Nextflix",
 }
 export const metadata = {
-  metadataBase: new URL("https://nextflix-blush.vercel.app"),
+  metadataBase: new URL("https://nextflix.cangungor.tr"),
   title: siteConfig.title,
   description: siteConfig.description,
   openGraph: {
@@ -35,14 +43,22 @@ export const metadata = {
   },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const locale = await getLocale()
+  const dictionary = getDictionary(locale)
+
   return (
-    <ClerkProvider>
-      <html lang="en" suppressHydrationWarning>
+    <ClerkProvider
+      signInUrl={clerkSignInUrl}
+      signUpUrl={clerkSignUpUrl}
+      afterSignInUrl={clerkAfterSignInUrl}
+      afterSignUpUrl={clerkAfterSignUpUrl}
+    >
+      <html lang={locale} suppressHydrationWarning>
         <body
           className={cn(
             "bg-neutral-900 text-slate-50 antialiased scrollbar-none",
@@ -50,7 +66,9 @@ export default function RootLayout({
           )}
         >
           <ThemeProvider attribute="class" defaultTheme="dark">
-            {children}
+            <LocaleProvider locale={locale} dictionary={dictionary}>
+              {children}
+            </LocaleProvider>
           </ThemeProvider>
           <Toaster />
           <Analytics />

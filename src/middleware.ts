@@ -1,16 +1,12 @@
 import { authMiddleware } from "@clerk/nextjs"
+
+// Clerk'in auth() / currentUser() bağlamını doldurması için authMiddleware
+// gereklidir. Tüm rotaları public yaparak otomatik yönlendirme/loop'u önlüyoruz;
+// sayfa korumasını `requireAuth()` (currentUser + redirect) ile manuel yapıyoruz.
 export default authMiddleware({
-  publicRoutes: [
-    "/",
-    "/api/(.*)",
-    "/show/(.*)",
-    "/tv-shows",
-    "/movies",
-    "/new-and-popular",
-    "/search(.*)",
-  ],
+  publicRoutes: () => true,
 })
 
 export const config = {
-  matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)"],
+  matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
 }

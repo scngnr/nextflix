@@ -1,13 +1,13 @@
-import { Skeleton } from "~/components/ui/skeleton"
+import { HeroSkeleton, RowSkeleton } from "~/components/skeletons"
 
 export default function Loading() {
   return (
-    <main>
-      <div className="space-y-10">
-        <Skeleton className="my-16 h-[250px] w-full max-w-lg md:h-[384px]" />
-        <Skeleton className="h-[138px] w-full md:h-[189px]" />
-        <Skeleton className="h-[138px] w-full md:h-[189px]" />
-        <Skeleton className="h-[138px] w-full md:h-[189px]" />
+    <main className="relative px-4 md:px-12">
+      <HeroSkeleton />
+      <div className="relative z-10 space-y-6 pb-12 pt-4">
+        <RowSkeleton />
+        <RowSkeleton />
+        <RowSkeleton />
       </div>
     </main>
   )

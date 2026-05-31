@@ -11,9 +11,8 @@ export const env = createEnv({
 
     DATABASE_URL: z.string().url(),
     CLERK_SECRET_KEY: z.string().min(1),
-    STRIPE_SECRET_KEY: z.string().min(1),
-    STRIPE_WEBHOOK_SECRET: z.string().min(1),
-    STRIPE_DEV_WEBHOOK_SECRET: z.string().min(1),
+    ADMIN_SESSION_SECRET: z.string().min(16).optional(),
+    ADMIN_USER_IDS: z.string().optional(),
   },
 
   /**
@@ -26,7 +25,6 @@ export const env = createEnv({
 
     NEXT_PUBLIC_TMDB_API: z.string().min(1),
     NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().min(1),
-    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().min(1),
   },
 
   /**
@@ -42,11 +40,8 @@ export const env = createEnv({
     NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:
       process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
     CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
-    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:
-      process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
-    STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
-    STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
-    STRIPE_DEV_WEBHOOK_SECRET: process.env.STRIPE_DEV_WEBHOOK_SECRET,
+    ADMIN_SESSION_SECRET: process.env.ADMIN_SESSION_SECRET,
+    ADMIN_USER_IDS: process.env.ADMIN_USER_IDS,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.

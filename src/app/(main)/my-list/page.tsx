@@ -1,11 +1,13 @@
 import { ShowScroller } from "./infinite-scroller"
 import { getMyShows } from "~/lib/server-fetchers"
+import { requireAuth } from "~/lib/auth"
 
 export default async function MyShowPage() {
+  await requireAuth()
   const LIMIT = 30
   const data = await getMyShows(LIMIT)
   return (
-    <main className="pt-8">
+    <main className="px-4 pt-24 md:px-12">
       {!data.shows.length && (
         <div className="mb-4 space-y-3">
           <p className="text-3xl font-semibold">Your list is empty</p>

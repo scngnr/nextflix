@@ -1,9 +1,12 @@
 import { Check } from "lucide-react"
 import { PlanSelector } from "./plan-selector"
 import { getAccount } from "~/lib/server-fetchers"
+import { requireAuth } from "~/lib/auth"
 
 export default async function SubscriptionPage() {
+  await requireAuth()
   const account = await getAccount()
+  const paymentsEnabled = false
   return (
     <main className="mt-8 space-y-8 md:px-24">
       <h1 className="text-3xl font-bold sm:text-4xl">
@@ -23,7 +26,10 @@ export default async function SubscriptionPage() {
           <p>Change or cancel your plan anytime</p>
         </div>
       </div>
-      <PlanSelector activeSubscription={account.membership} />
+      <PlanSelector
+        activeSubscription={account.membership}
+        paymentsEnabled={paymentsEnabled}
+      />
       <div className="space-y-3 text-sm text-zinc-300">
         <p>
           HD (720p), Full HD (1080p), Ultra HD (4K) and HDR availability subject

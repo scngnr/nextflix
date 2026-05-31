@@ -3,7 +3,9 @@ import {
   pgTable,
   varchar,
   integer,
+  serial,
   timestamp,
+  boolean,
   pgEnum,
   primaryKey,
   uniqueIndex,
@@ -22,6 +24,9 @@ export const accounts = pgTable(
     membership: membershipEnum("membership").notNull().default("free"),
     stripeCustomerId: varchar("stripe_customer_id", { length: 256 }),
     activeProfileId: varchar("active_profile_id", { length: 256 }).notNull(),
+    canAccessAdminPanel: boolean("can_access_admin_panel")
+      .notNull()
+      .default(false),
   },
   (table) => {
     return {
@@ -87,3 +92,119 @@ export const myShowsRelation = relations(myShows, ({ one }) => ({
     references: [profiles.id],
   }),
 }))
+
+export const likedShows = pgTable(
+  "liked_shows",
+  {
+    id: integer("id").notNull(),
+    mediaType: mediaTypeEnum("media_type").notNull(),
+    profileId: varchar("profile_id", { length: 256 })
+      .references(() => profiles.id, { onDelete: "cascade" })
+      .notNull(),
+  },
+  (table) => {
+    return {
+      likedProfileIdIdx: index("liked_profile_id_idx").on(table.profileId),
+      pk: primaryKey(table.id, table.profileId),
+    }
+  },
+)
+export const likedShowsRelation = relations(likedShows, ({ one }) => ({
+  profile: one(profiles, {
+    fields: [likedShows.profileId],
+    references: [profiles.id],
+  }),
+}))
+
+export const watchProgress = pgTable(
+  "watch_progress",
+  {
+    id: integer("id").notNull(),
+    mediaType: mediaTypeEnum("media_type").notNull(),
+    profileId: varchar("profile_id", { length: 256 })
+      .references(() => profiles.id, { onDelete: "cascade" })
+      .notNull(),
+    progress: integer("progress").notNull().default(0),
+    updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+  },
+  (table) => {
+    return {
+      wpProfileIdIdx: index("wp_profile_id_idx").on(table.profileId),
+      pk: primaryKey(table.id, table.mediaType, table.profileId),
+    }
+  },
+)
+export const watchProgressRelation = relations(watchProgress, ({ one }) => ({
+  profile: one(profiles, {
+    fields: [watchProgress.profileId],
+    references: [profiles.id],
+  }),
+}))
+
+export const ratings = pgTable(
+  "ratings",
+  {
+    id: integer("id").notNull(),
+    mediaType: mediaTypeEnum("media_type").notNull(),
+    profileId: varchar("profile_id", { length: 256 })
+      .references(() => profiles.id, { onDelete: "cascade" })
+      .notNull(),
+    rating: integer("rating").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (table) => {
+    return {
+      rProfileIdIdx: index("r_profile_id_idx").on(table.profileId),
+      pk: primaryKey(table.id, table.mediaType, table.profileId),
+    }
+  },
+)
+
+export const searchHistory = pgTable(
+  "search_history",
+  {
+    id: serial("id").primaryKey(),
+    profileId: varchar("profile_id", { length: 256 })
+      .references(() => profiles.id, { onDelete: "cascade" })
+      .notNull(),
+    query: varchar("query", { length: 256 }).notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (table) => {
+    return {
+      shProfileIdIdx: index("sh_profile_id_idx").on(table.profileId),
+    }
+  },
+)
+
+export const adminUsers = pgTable("admin_users", {
+  id: serial("id").primaryKey(),
+  username: varchar("username", { length: 64 }).notNull().unique(),
+  passwordHash: varchar("password_hash", { length: 256 }).notNull(),
+  mustChangePassword: boolean("must_change_password").notNull().default(true),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+})
+
+export const sourceKindEnum = pgEnum("source_kind", [
+  "mp4",
+  "hls",
+  "drive",
+  "youtube",
+])
+export const movieSources = pgTable(
+  "movie_sources",
+  {
+    id: integer("id").notNull(),
+    mediaType: mediaTypeEnum("media_type").notNull(),
+    kind: sourceKindEnum("kind").notNull().default("mp4"),
+    url: varchar("url", { length: 1024 }).notNull(),
+    title: varchar("title", { length: 512 }),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (table) => {
+    return {
+      pk: primaryKey(table.id, table.mediaType),
+    }
+  },
+)

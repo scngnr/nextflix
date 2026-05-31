@@ -2,8 +2,16 @@
 import { z } from "zod"
 import { authAction } from "./safe-action-client"
 import { db } from "~/db/client"
-import { eq } from "drizzle-orm"
-import { accounts, profiles, myShows } from "~/db/schema"
+import { eq, and } from "drizzle-orm"
+import {
+  accounts,
+  profiles,
+  myShows,
+  likedShows,
+  watchProgress,
+  searchHistory,
+  ratings,
+} from "~/db/schema"
 import { ERR } from "~/lib/utils"
 import { revalidatePath } from "next/cache"
 import {
@@ -12,13 +20,63 @@ import {
   getProfile,
   getAccountWithActiveProfile,
   getMyShowsFromTmdb,
+  getMyShowIds,
+  getLikedShowIds,
+  getSeasonEpisodes,
+  getContinueWatching,
+  getRecentSearches,
+  getLibraryIds,
 } from "~/lib/server-fetchers"
-import { stripe } from "~/lib/stripe"
-import { headers } from "next/headers"
-import { redirect } from "next/navigation"
-import type { Stripe } from "stripe"
-import { planTuple } from "~/lib/configs"
 import { MediaTuple } from "~/lib/types"
+import type { MediaType } from "~/lib/types"
+import { isAdmin } from "~/lib/admin"
+import { currentUser } from "@clerk/nextjs/server"
+
+/** Admin panel oturumu açık mı (admin/123456 girişi). */
+export async function isAdminAction(): Promise<boolean> {
+  return isAdmin()
+}
+
+export async function getLibraryIdsAction() {
+  return getLibraryIds()
+}
+
+/** Site menüsünde Admin Panel linki gösterilsin mi (admin panelden atanmış). */
+export async function canSeeAdminPanelAction(): Promise<boolean> {
+  const user = await currentUser()
+  if (!user) return false
+  const account = await db.query.accounts.findFirst({
+    where: eq(accounts.id, user.id),
+    columns: { canAccessAdminPanel: true },
+  })
+  return account?.canAccessAdminPanel ?? false
+}
+
+export async function getSavedShowIdsAction(): Promise<number[]> {
+  return getMyShowIds()
+}
+
+export async function getLikedShowIdsAction(): Promise<number[]> {
+  return getLikedShowIds()
+}
+
+export async function getSeasonEpisodesAction(
+  tvId: number,
+  seasonNumber: number,
+) {
+  return getSeasonEpisodes(tvId, seasonNumber)
+}
+
+export async function getActiveProfileAction() {
+  const user = await currentUser()
+  if (!user) return null
+  try {
+    const account = await getAccountWithActiveProfile()
+    return account.activeProfile ?? null
+  } catch {
+    return null
+  }
+}
 
 export const createProfile = authAction(
   z.object({
@@ -121,41 +179,154 @@ export const toggleMyShow = authAction(
   },
 )
 
-export const createCheckoutSession = authAction(
+export const toggleLike = authAction(
   z.object({
-    stripeProductId: z.string(),
-    planName: z.enum(planTuple),
+    id: z.number(),
+    isLiked: z.boolean(),
+    movieOrTv: z.enum(MediaTuple),
   }),
-  async (input, { userId }) => {
+  async (input) => {
     const account = await getAccount()
-    const siteUrl = headers().get("origin")!
-    let checkoutSession: Stripe.Checkout.Session | Stripe.BillingPortal.Session
-    if (input.planName !== "free" && account.membership === "free")
-      checkoutSession = await stripe.checkout.sessions.create({
-        mode: "subscription",
-        billing_address_collection: "auto",
-        customer_email: account.email,
-        line_items: [
-          {
-            price: input.stripeProductId,
-            quantity: 1,
-          },
-        ],
-        success_url: `${siteUrl}/subscription/result?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${siteUrl}/subscription`,
-        metadata: {
-          userId,
-          planName: input.planName,
-        },
-      })
-    else
-      checkoutSession = await stripe.billingPortal.sessions.create({
-        customer: account.stripeCustomerId!,
-        return_url: `${siteUrl}/subscription`,
-      })
-    redirect(checkoutSession.url!)
+    if (!input.isLiked) {
+      await db
+        .insert(likedShows)
+        .values({
+          id: input.id,
+          mediaType: input.movieOrTv,
+          profileId: account.activeProfileId,
+        })
+        .onConflictDoNothing()
+      return { isLiked: true }
+    } else {
+      await db
+        .delete(likedShows)
+        .where(
+          and(
+            eq(likedShows.id, input.id),
+            eq(likedShows.profileId, account.activeProfileId),
+          ),
+        )
+      return { isLiked: false }
+    }
   },
 )
+
+export async function upsertWatchProgressAction(
+  id: number,
+  mediaType: MediaType,
+  progress: number,
+) {
+  const user = await currentUser()
+  if (!user) return
+  try {
+    const account = await getAccount()
+    await db
+      .insert(watchProgress)
+      .values({
+        id,
+        mediaType,
+        profileId: account.activeProfileId,
+        progress: Math.max(0, Math.round(progress)),
+      })
+      .onConflictDoUpdate({
+        target: [
+          watchProgress.id,
+          watchProgress.mediaType,
+          watchProgress.profileId,
+        ],
+        set: { progress: Math.max(0, Math.round(progress)), updatedAt: new Date() },
+      })
+  } catch (err) {
+    console.error("upsertWatchProgress", err)
+  }
+}
+
+export async function removeWatchProgressAction(
+  id: number,
+  mediaType: MediaType,
+) {
+  const user = await currentUser()
+  if (!user) return
+  try {
+    const account = await getAccount()
+    await db
+      .delete(watchProgress)
+      .where(
+        and(
+          eq(watchProgress.id, id),
+          eq(watchProgress.mediaType, mediaType),
+          eq(watchProgress.profileId, account.activeProfileId),
+        ),
+      )
+  } catch (err) {
+    console.error("removeWatchProgress", err)
+  }
+}
+
+export async function getContinueWatchingAction() {
+  return getContinueWatching()
+}
+
+export async function addSearchAction(query: string) {
+  const user = await currentUser()
+  if (!user) return
+  const trimmed = query.trim().slice(0, 256)
+  if (trimmed.length < 2) return
+  try {
+    const account = await getAccount()
+    await db.insert(searchHistory).values({
+      profileId: account.activeProfileId,
+      query: trimmed,
+    })
+  } catch (err) {
+    console.error("addSearch", err)
+  }
+}
+
+export async function getRecentSearchesAction() {
+  return getRecentSearches()
+}
+
+export async function setRatingAction(
+  id: number,
+  mediaType: MediaType,
+  rating: number,
+) {
+  const user = await currentUser()
+  if (!user) return
+  const value = Math.min(5, Math.max(1, Math.round(rating)))
+  try {
+    const account = await getAccount()
+    await db
+      .insert(ratings)
+      .values({ id, mediaType, profileId: account.activeProfileId, rating: value })
+      .onConflictDoUpdate({
+        target: [ratings.id, ratings.mediaType, ratings.profileId],
+        set: { rating: value, createdAt: new Date() },
+      })
+  } catch (err) {
+    console.error("setRating", err)
+  }
+}
+
+export async function removeRatingAction(id: number, mediaType: MediaType) {
+  const user = await currentUser()
+  if (!user) return
+  try {
+    const account = await getAccount()
+    await db
+      .delete(ratings)
+      .where(
+        and(
+          eq(ratings.id, id),
+          eq(ratings.mediaType, mediaType),
+          eq(ratings.profileId, account.activeProfileId),
+        ),
+      )
+  } catch (err) {
+    console.error("removeRating", err)
+  }
+}
 
 export const getMyShowsInfinite = authAction(
   z.object({

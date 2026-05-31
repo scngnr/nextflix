@@ -17,6 +17,12 @@ module.exports = {
     },
     extend: {
       colors: {
+        netflix: {
+          red: "#E50914",
+          "red-dark": "#B20710",
+          black: "#141414",
+          gray: "#808080",
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

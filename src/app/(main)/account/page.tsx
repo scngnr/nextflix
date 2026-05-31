@@ -2,8 +2,10 @@ import { CreditCard, ChevronRight } from "lucide-react"
 import { Button } from "~/components/ui/button"
 import Link from "next/link"
 import { getAccountWithProfiles } from "~/lib/server-fetchers"
+import { requireAuth } from "~/lib/auth"
 
 export default async function AccountPage() {
+  await requireAuth()
   const account = await getAccountWithProfiles()
   return (
     <main className="mt-[2.5%] flex justify-center ">

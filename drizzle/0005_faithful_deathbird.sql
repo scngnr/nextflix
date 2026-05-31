@@ -1,0 +1,1 @@
+ALTER TABLE "accounts" ADD COLUMN "can_access_admin_panel" boolean DEFAULT false NOT NULL;

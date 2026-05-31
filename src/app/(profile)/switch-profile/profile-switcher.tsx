@@ -13,7 +13,11 @@ export function ProfileSwitcher({ profile }: { profile: Profile }) {
       profileId: profile.id,
     })
     toast({ description: data?.message ?? validationError?.profileId })
-    if (data) router.replace("/")
+    if (data) {
+      if (typeof window !== "undefined")
+        window.sessionStorage.setItem("np_profile_chosen", "1")
+      router.replace("/")
+    }
   }
 
   return (

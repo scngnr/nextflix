@@ -4,67 +4,27 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-
-    --ring: 0 0% 63.9%;
-
-    --radius: 0.5rem;
-  }
-
-  .dark {
-    --background: 0 0% 3.9%;
+    --background: 0 0% 4%;
     --foreground: 0 0% 98%;
-
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-
-    --popover: 0 0% 3.9%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 65%;
+    --popover: 0 0% 6%;
     --popover-foreground: 0 0% 98%;
-
-    --card: 0 0% 3.9%;
+    --card: 0 0% 8%;
     --card-foreground: 0 0% 98%;
-
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-
+    --border: 0 0% 18%;
+    --input: 0 0% 18%;
     --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-
-    --secondary: 0 0% 14.9%;
+    --primary-foreground: 0 0% 4%;
+    --secondary: 0 0% 14%;
     --secondary-foreground: 0 0% 98%;
-
-    --accent: 0 0% 14.9%;
+    --accent: 0 0% 14%;
     --accent-foreground: 0 0% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 85.7% 97.3%;
-
-    --ring: 0 0% 14.9%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --ring: 0 0% 40%;
+    --radius: 0.25rem;
+    --netflix-red: 357 92% 47%;
   }
 }
 
@@ -73,6 +33,44 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-[#141414] text-foreground antialiased;
+  }
+  :focus-visible {
+    @apply outline-none ring-2 ring-white ring-offset-2 ring-offset-[#141414];
+  }
+}
+
+@layer utilities {
+  .netflix-rank {
+    font-size: clamp(5rem, 14vw, 11rem);
+    -webkit-text-stroke: 4px #6b6b6b;
+    paint-order: stroke fill;
+  }
+}
+
+@layer utilities {
+  .netflix-gradient-bottom {
+    background: linear-gradient(
+      to top,
+      #141414 0%,
+      rgba(20, 20, 20, 0.85) 20%,
+      rgba(20, 20, 20, 0.4) 50%,
+      transparent 100%
+    );
+  }
+  .netflix-gradient-hero {
+    background: linear-gradient(
+      77deg,
+      rgba(20, 20, 20, 0.95) 0%,
+      rgba(20, 20, 20, 0.6) 40%,
+      transparent 100%
+    );
+  }
+  .netflix-gradient-top {
+    background: linear-gradient(
+      to bottom,
+      rgba(20, 20, 20, 0.9) 0%,
+      transparent 100%
+    );
   }
 }

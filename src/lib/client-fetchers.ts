@@ -1,6 +1,6 @@
-import { env } from "~/env.mjs"
 import type { Show, MediaType } from "./types"
 import { ERR } from "./utils"
+import { tmdbFetchClient } from "./tmdb-client"
 
 export async function getShows(mediaType: MediaType) {
   const [
@@ -12,27 +12,13 @@ export async function getShows(mediaType: MediaType) {
     romanceRes,
     documentaryRes,
   ] = await Promise.all([
-    fetch(
-      `https://api.themoviedb.org/3/trending/${mediaType}/week?api_key=${env.NEXT_PUBLIC_TMDB_API}`,
-    ),
-    fetch(
-      `https://api.themoviedb.org/3/${mediaType}/top_rated?api_key=${env.NEXT_PUBLIC_TMDB_API}`,
-    ),
-    fetch(
-      `https://api.themoviedb.org/3/discover/${mediaType}?api_key=${env.NEXT_PUBLIC_TMDB_API}&with_genres=28`,
-    ),
-    fetch(
-      `https://api.themoviedb.org/3/discover/${mediaType}?api_key=${env.NEXT_PUBLIC_TMDB_API}&with_genres=35`,
-    ),
-    fetch(
-      `https://api.themoviedb.org/3/discover/${mediaType}?api_key=${env.NEXT_PUBLIC_TMDB_API}&with_genres=27`,
-    ),
-    fetch(
-      `https://api.themoviedb.org/3/discover/${mediaType}?api_key=${env.NEXT_PUBLIC_TMDB_API}&with_genres=10749`,
-    ),
-    fetch(
-      `https://api.themoviedb.org/3/discover/${mediaType}?api_key=${env.NEXT_PUBLIC_TMDB_API}&with_genres=99`,
-    ),
+    tmdbFetchClient(`/trending/${mediaType}/week`),
+    tmdbFetchClient(`/${mediaType}/top_rated`),
+    tmdbFetchClient(`/discover/${mediaType}?with_genres=28`),
+    tmdbFetchClient(`/discover/${mediaType}?with_genres=35`),
+    tmdbFetchClient(`/discover/${mediaType}?with_genres=27`),
+    tmdbFetchClient(`/discover/${mediaType}?with_genres=10749`),
+    tmdbFetchClient(`/discover/${mediaType}?with_genres=99`),
   ])
 
   if (

@@ -27,6 +27,49 @@ export interface ShowWithVideoAndGenre extends Show {
   genres: Genre[]
 }
 
+export interface CastMember {
+  id: number
+  name: string
+  character: string
+  profile_path: string | null
+}
+
+export interface CrewMember {
+  id: number
+  name: string
+  job: string
+}
+
+export interface Season {
+  id: number
+  season_number: number
+  name: string
+  episode_count: number
+  poster_path: string | null
+}
+
+export interface Episode {
+  id: number
+  name: string
+  overview: string
+  still_path: string | null
+  episode_number: number
+  season_number: number
+  runtime: number | null
+  air_date: string | null
+}
+
+export interface ShowDetail extends ShowWithVideoAndGenre {
+  runtime?: number
+  number_of_seasons?: number
+  seasons?: Season[]
+  credits?: { cast: CastMember[]; crew: CrewMember[] }
+  similar?: { results: Show[] }
+  recommendations?: { results: Show[] }
+  certification?: string | null
+  logo_path?: string | null
+}
+
 type Video = {
   key: string
   type: string

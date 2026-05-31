@@ -4,22 +4,20 @@ import { useState } from "react"
 import { Button } from "~/components/ui/button"
 import type { SubscriptionPlan, PlanName } from "~/lib/types"
 import { PLANS } from "~/lib/configs"
-import { createCheckoutSession } from "~/actions"
 
 export function PlanSelector({
   activeSubscription,
+  paymentsEnabled = false,
 }: {
   activeSubscription: PlanName
+  paymentsEnabled?: boolean
 }) {
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan>(
     Plans[activeSubscription],
   )
 
   function submit() {
-    void createCheckoutSession({
-      stripeProductId: selectedPlan.id,
-      planName: selectedPlan.name,
-    })
+    if (!paymentsEnabled) return
   }
 
   return (
@@ -45,12 +43,15 @@ export function PlanSelector({
           className="w-56 bg-green-600 font-semibold text-white hover:bg-green-700"
           onClick={submit}
           disabled={
-            selectedPlan.name === "free" && activeSubscription === "free"
-              ? true
-              : false
+            !paymentsEnabled ||
+            (selectedPlan.name === "free" && activeSubscription === "free")
           }
         >
-          {activeSubscription !== "free" ? "Edit" : "Subscribe"}
+          {!paymentsEnabled
+            ? "Payments unavailable"
+            : activeSubscription !== "free"
+              ? "Edit"
+              : "Subscribe"}
         </Button>
       </div>
     </>

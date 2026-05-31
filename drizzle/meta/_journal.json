@@ -1,0 +1,48 @@
+{
+  "version": "5",
+  "dialect": "pg",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1780163827551,
+      "tag": "0000_greedy_zodiak",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1780166493411,
+      "tag": "0001_early_slipstream",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1780168597711,
+      "tag": "0002_small_the_twelve",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1780169901350,
+      "tag": "0003_opposite_fat_cobra",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1780171245126,
+      "tag": "0004_tiny_demogoblin",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1780171623653,
+      "tag": "0005_faithful_deathbird",
+      "breakpoints": true
+    }
+  ]
+}
