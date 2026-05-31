@@ -27,10 +27,10 @@ Set-Location $PSScriptRoot\..
 $exists = gh repo view "${RepoOwner}/${RepoName}" 2>$null
 if ($LASTEXITCODE -ne 0) {
   Write-Host "Fork olusturuluyor: ${Upstream} -> ${RepoOwner}/${RepoName} ..." -ForegroundColor Cyan
-  gh repo fork $Upstream --fork-name $RepoName --remote=false
+  gh repo fork $Upstream --fork-name $RepoName
   if ($LASTEXITCODE -ne 0) {
     Write-Host "Fork basarisiz; bos public repo olusturuluyor ..." -ForegroundColor Yellow
-    gh repo create $RepoName --public --description "Canflix - Netflix clone with Drive library" --remote=false
+    gh repo create $RepoName --public --description "Canflix - Netflix clone with Drive library"
   }
 }
 
