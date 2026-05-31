@@ -11,6 +11,7 @@ import { LibraryFilteredTop10 } from "~/components/library-filtered-top10"
 import { LibraryFilteredCarousel } from "~/components/library-filtered-carousel"
 import { ContinueWatchingSection } from "~/components/continue-watching-section"
 import { BecauseYouWatchedRow } from "~/components/because-you-watched-row"
+import { LikedShowsRow } from "~/components/liked-shows-row"
 import { LibraryFilterSwitch } from "~/components/library-filter-switch"
 import { RowSkeleton } from "~/components/skeletons"
 
@@ -77,6 +78,10 @@ export default async function Home() {
           <ContinueWatchingSection />
         </Suspense>
         <BecauseYouWatchedRow />
+        <Suspense fallback={<RowSkeleton />}>
+          {/* @ts-expect-error Async Server Component */}
+          <LikedShowsRow />
+        </Suspense>
         <Suspense fallback={<RowSkeleton />}>
           {/* @ts-expect-error Async Server Component */}
           <CarouselRow

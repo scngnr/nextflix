@@ -98,6 +98,23 @@ export const tr = {
   rows: {
     continueWatching: "İzlemeye Devam Et",
     becauseYouWatched: "Bunu izlediğin için",
+    liked: "Beğendiklerin",
+    becauseYouWatchedTitle: 'Çünkü "{title}" izledin',
+  },
+  meta: {
+    match: "Eşleşme",
+    tmdb: "TMDB",
+    genre: "Tür",
+  },
+  auth: {
+    signIn: "Giriş Yap",
+    signUp: "Kayıt Ol",
+    signOut: "Çıkış Yap",
+    manageProfile: "Profili Yönet",
+    switchProfile: "Profil Değiştir",
+    account: "Hesap",
+    subscription: "Üyelik",
+    adminPanel: "Admin Panel",
   },
   common: {
     play: "Oynat",

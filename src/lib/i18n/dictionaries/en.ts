@@ -97,6 +97,23 @@ export const en: Dictionary = {
   rows: {
     continueWatching: "Continue Watching",
     becauseYouWatched: "Because you watched",
+    liked: "Liked Titles",
+    becauseYouWatchedTitle: 'Because you watched "{title}"',
+  },
+  meta: {
+    match: "Match",
+    tmdb: "TMDB",
+    genre: "Genre",
+  },
+  auth: {
+    signIn: "Sign In",
+    signUp: "Sign Up",
+    signOut: "Sign Out",
+    manageProfile: "Manage Profile",
+    switchProfile: "Switch Profile",
+    account: "Account",
+    subscription: "Membership",
+    adminPanel: "Admin Panel",
   },
   common: {
     play: "Play",

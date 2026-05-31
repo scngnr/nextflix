@@ -4,8 +4,12 @@ import { useEffect, useState } from "react"
 import type { Show } from "~/lib/types"
 import { getContinueWatching } from "~/lib/continue-watching"
 import { ShowsCarousel } from "~/components/show-carousel"
+import { useLocale } from "~/components/locale-provider"
+import { buildTmdbUrl } from "~/lib/tmdb-shared"
+import { format } from "~/lib/i18n/format"
 
 export function BecauseYouWatchedRow() {
+  const { locale, dict } = useLocale()
   const [shows, setShows] = useState<Show[]>([])
   const [seedTitle, setSeedTitle] = useState("")
 
@@ -14,16 +18,17 @@ export function BecauseYouWatchedRow() {
     if (!seed) return
     setSeedTitle(seed.title)
     const ctrl = new AbortController()
-    fetch(
-      `https://api.themoviedb.org/3/${seed.mediaType}/${seed.id}/recommendations`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_TMDB_API}`,
-          accept: "application/json",
-        },
-        signal: ctrl.signal,
-      },
+    const url = buildTmdbUrl(
+      `/${seed.mediaType}/${seed.id}/recommendations`,
+      locale,
     )
+    fetch(url, {
+      headers: {
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_TMDB_API}`,
+        accept: "application/json",
+      },
+      signal: ctrl.signal,
+    })
       .then((r) => (r.ok ? (r.json() as Promise<{ results?: Show[] }>) : null))
       .then((data) => {
         if (!data) return
@@ -33,8 +38,10 @@ export function BecauseYouWatchedRow() {
       })
       .catch(() => undefined)
     return () => ctrl.abort()
-  }, [])
+  }, [locale])
 
   if (!shows.length) return null
-  return <ShowsCarousel title={`Çünkü "${seedTitle}" izledin`} shows={shows} />
+
+  const title = format(dict.rows.becauseYouWatchedTitle, { title: seedTitle })
+  return <ShowsCarousel title={title} shows={shows} />
 }

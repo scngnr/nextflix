@@ -19,6 +19,8 @@ export interface Show {
   popularity: number
   release_date?: string
   first_air_date?: string
+  genre_ids?: number[]
+  genres?: Genre[]
 }
 export interface ShowWithVideoAndGenre extends Show {
   videos: {

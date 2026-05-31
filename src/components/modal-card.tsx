@@ -11,6 +11,7 @@ import { useMyList } from "~/components/my-list-provider"
 import { setRatingAction, removeRatingAction } from "~/actions"
 import { Play, Plus, Check, ThumbsUp, ArrowLeft, Film, Star } from "lucide-react"
 import { useLocale } from "~/components/locale-provider"
+import { ShowMetaLine } from "~/components/show-meta-line"
 import { cn } from "~/lib/utils"
 
 interface ModalCardProps extends React.ComponentPropsWithoutRef<"div"> {
@@ -166,23 +167,16 @@ export function ModalCard({
       <div className="space-y-6 p-6 md:p-8">
         <div className="grid gap-6 md:grid-cols-3">
           <div className="space-y-3 md:col-span-2">
-            <div className="flex flex-wrap items-center gap-3 text-sm">
-              <span className="font-semibold text-[#46d369]">
-                {Math.round(show.vote_average * 10)}% Eşleşme
-              </span>
-              {year && <span className="text-white/80">{year}</span>}
-              {runtimeLabel && (
-                <span className="text-white/80">{runtimeLabel}</span>
-              )}
-              {show.certification && (
-                <span className="rounded border border-white/40 px-1.5 py-0.5 text-xs text-white/80">
-                  {show.certification}
-                </span>
-              )}
-              <span className="rounded border border-white/40 px-1.5 py-0.5 text-xs text-white/70">
-                HD
-              </span>
-            </div>
+            <ShowMetaLine
+              show={show}
+              mediaType={mediaType}
+              showYear
+              showCertification
+              showHd
+            />
+            {runtimeLabel && (
+              <p className="text-sm text-white/80">{runtimeLabel}</p>
+            )}
             <p className="text-sm leading-relaxed text-white/90 md:text-base">
               {show.overview}
             </p>
@@ -282,11 +276,14 @@ export function ModalCard({
                     />
                   </div>
                   <div className="p-2.5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-medium text-[#46d369]">
-                        {Math.round(s.vote_average * 10)}% Eşleşme
-                      </span>
-                    </div>
+                    <ShowMetaLine
+                      show={s}
+                      mediaType={s.title ? "movie" : "tv"}
+                      size="sm"
+                      showHd={false}
+                      showYear={false}
+                      showCertification={false}
+                    />
                     <p className="mt-1 line-clamp-1 text-sm font-medium text-white">
                       {s.title ?? s.name}
                     </p>

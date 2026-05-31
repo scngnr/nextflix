@@ -4,7 +4,9 @@ import { useEffect, useState } from "react"
 import type { Show, MediaType, ShowDetail } from "~/lib/types"
 import { ShowHero } from "~/components/show-hero"
 import { useLibraryFilter } from "~/components/library-filter-provider"
+import { useLocale } from "~/components/locale-provider"
 import { getCustomVideoUrl } from "~/lib/custom-videos"
+import { buildTmdbUrl } from "~/lib/tmdb-shared"
 
 export function HomeHero({
   defaultShow,
@@ -18,6 +20,7 @@ export function HomeHero({
   libraryIds: { movies: number[]; tv: number[] }
 }) {
   const { libraryOnly, ready } = useLibraryFilter()
+  const { locale } = useLocale()
   const [detail, setDetail] = useState(defaultDetail)
   const [loading, setLoading] = useState(false)
 
@@ -36,15 +39,16 @@ export function HomeHero({
     const id = pool[Math.floor(Math.random() * pool.length)]!
     setLoading(true)
 
-    void fetch(
-      `https://api.themoviedb.org/3/${mediaType}/${id}?append_to_response=videos`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_TMDB_API}`,
-          accept: "application/json",
-        },
-      },
+    const url = buildTmdbUrl(
+      `/${mediaType}/${id}?append_to_response=videos`,
+      locale,
     )
+    void fetch(url, {
+      headers: {
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_TMDB_API}`,
+        accept: "application/json",
+      },
+    })
       .then((res) => (res.ok ? res.json() : null))
       .then((data: ShowDetail | null) => {
         if (!cancelled && data) setDetail(data)
@@ -56,7 +60,7 @@ export function HomeHero({
     return () => {
       cancelled = true
     }
-  }, [libraryOnly, ready, defaultDetail, mediaType, libraryIds])
+  }, [libraryOnly, ready, defaultDetail, mediaType, libraryIds, locale])
 
   const trailer =
     detail.videos?.results.find((v) => v.type === "Trailer") ??

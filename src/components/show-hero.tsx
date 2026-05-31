@@ -7,6 +7,7 @@ import Image from "next/image"
 import { Play, Info, Volume2, VolumeX, RotateCcw } from "lucide-react"
 import { getYoutubeEmbedUrl, isDirectVideoUrl } from "~/lib/custom-videos"
 import { useLocale } from "~/components/locale-provider"
+import { ShowMetaLine } from "~/components/show-meta-line"
 import { cn } from "~/lib/utils"
 
 function ytCommand(iframe: HTMLIFrameElement | null, func: string) {
@@ -34,8 +35,6 @@ export function ShowHero({
   const videoRef = useRef<HTMLVideoElement>(null)
 
   const title = show.title ?? show.name ?? "Untitled"
-  const year =
-    show.release_date?.substring(0, 4) ?? show.first_air_date?.substring(0, 4)
   const backdrop = show.backdrop_path ?? show.poster_path
   const youtubeEmbed = customUrl
     ? getYoutubeEmbedUrl(customUrl)
@@ -124,20 +123,13 @@ export function ShowHero({
               </h1>
             )}
 
-            <div className="flex items-center gap-3 text-sm font-medium md:text-base">
-              <span className="text-[#46d369]">
-                {Math.round(show.vote_average * 10)}% Eşleşme
-              </span>
-              {year && <span className="text-white/80">{year}</span>}
-              {show.certification && (
-                <span className="rounded border border-white/40 px-1.5 py-0.5 text-xs text-white/80">
-                  {show.certification}
-                </span>
-              )}
-              <span className="rounded border border-white/40 px-1.5 py-0.5 text-xs text-white/70">
-                HD
-              </span>
-            </div>
+            <ShowMetaLine
+              show={show}
+              mediaType={mediaType}
+              showYear
+              showCertification
+              showHd
+            />
 
             <p className="line-clamp-2 max-w-lg text-sm text-white/90 drop-shadow-md md:line-clamp-3 md:text-lg">
               {show.overview}

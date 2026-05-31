@@ -564,3 +564,29 @@ export async function getLikedShowIds(): Promise<number[]> {
   })
   return rows.map((r) => r.id)
 }
+
+export async function getLikedShowsForCarousel(limit = 24): Promise<Show[]> {
+  const user = await currentUser()
+  if (!user) return []
+  await ensureAccountExists(user.id)
+  const account = await db.query.accounts.findFirst({
+    where: eq(accounts.id, user.id),
+    columns: { activeProfileId: true },
+  })
+  if (!account) return []
+
+  const rows = await db.query.likedShows.findMany({
+    where: eq(likedShows.profileId, account.activeProfileId),
+    limit,
+  })
+
+  const data = await Promise.all<Show | null>(
+    rows.map(async (row) => {
+      const res = await tmdbFetch(`/${row.mediaType}/${row.id}`)
+      if (!res.ok) return null
+      return res.json() as Promise<Show>
+    }),
+  )
+
+  return data.filter((s): s is Show => !!s && !!(s.poster_path ?? s.backdrop_path))
+}

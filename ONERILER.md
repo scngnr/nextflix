@@ -115,8 +115,8 @@ Ekran görüntülerinden ve koddan tespit edilen başlıca problemler:
 - [x] **7.9 — Ses seviyesi kaydırıcısı** (hover'da açılan range).
 
 ### 7C — Kişiselleştirme & Sosyal
-- [x] **7.10 — Beğen (thumbs) kalıcı kayıt:** `liked_shows` DB tablosu + optimistic
-      UI (carousel & modal). _"Beğendiklerin" satırı sırada._
+- [x] **7.10 — Beğen (thumbs) kalıcı kayıt:** `liked_shows` DB + optimistic UI;
+      ana sayfada **"Beğendiklerin"** satırı (`LikedShowsRow`).
 - [~] **7.11 — Çocuk içerik:** `/kids` hub (TMDB TV `10762`, film Aile+Animasyon),
       ana sayfada "Çocuklar İçin" satırı; `src/lib/kids-content.ts` ile ileride
       **YouTube Kids** birleşimine hazır (`youtube_kids` feed, şimdilik kapalı).
@@ -244,8 +244,8 @@ Platformu gerçek bir ürün seviyesine taşıyacak mühendislik maddeleri:
 
 ### 9F — UX & Erişilebilirlik Cilası
 - [ ] **9.26 — Tam klavye navigasyonu:** Satırlarda ok tuşları, `roving tabindex`.
-- [ ] **9.27 — Reduced motion desteği:** `prefers-reduced-motion` ile animasyon
-      azaltma.
+- [x] **9.27 — Reduced motion desteği:** `prefers-reduced-motion` ile animasyon
+      azaltma (`globals.css`).
 - [ ] **9.28 — Boş/hata durumları:** Tüm sayfalarda tutarlı empty & error UI
       (`error.tsx`, `not-found.tsx`).
 - [ ] **9.29 — Toast & optimistic geri alma:** Beğeni/listeden çıkarma için

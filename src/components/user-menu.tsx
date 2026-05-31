@@ -7,6 +7,7 @@ import { getActiveProfileAction, canSeeAdminPanelAction } from "~/actions"
 import type { Profile } from "~/lib/types"
 import { Button } from "~/components/ui/button"
 import { Skeleton } from "~/components/ui/skeleton"
+import { useLocale } from "~/components/locale-provider"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,6 +25,7 @@ import {
 } from "lucide-react"
 
 export function UserMenu() {
+  const { dict } = useLocale()
   const { isLoaded, isSignedIn, user } = useUser()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [showAdminLink, setShowAdminLink] = useState(false)
@@ -52,7 +54,7 @@ export function UserMenu() {
         asChild
         className="bg-netflix-red font-semibold text-white hover:bg-netflix-red-dark active:bg-netflix-red-dark"
       >
-        <Link href="/sign-in">Giriş Yap</Link>
+        <Link href="/sign-in">{dict.auth.signIn}</Link>
       </Button>
     )
   }
@@ -83,25 +85,25 @@ export function UserMenu() {
         <Link href="/manage-profile">
           <DropdownMenuItem className="gap-1.5">
             <Pencil className="w-5" />
-            Profili Yönet
+            {dict.auth.manageProfile}
           </DropdownMenuItem>
         </Link>
         <Link href="/switch-profile">
           <DropdownMenuItem className="gap-1.5">
             <ArrowLeftRight className="w-5" />
-            Profil Değiştir
+            {dict.auth.switchProfile}
           </DropdownMenuItem>
         </Link>
         <Link href="/account">
           <DropdownMenuItem className="gap-1.5">
             <User className="w-5" />
-            Hesap
+            {dict.auth.account}
           </DropdownMenuItem>
         </Link>
         <Link href="/subscription">
           <DropdownMenuItem className="gap-1.5">
             <BadgeCheck className="w-5" />
-            Üyelik
+            {dict.auth.subscription}
           </DropdownMenuItem>
         </Link>
         {showAdminLink && (
@@ -110,18 +112,17 @@ export function UserMenu() {
             <Link href="/admin/login">
               <DropdownMenuItem className="gap-1.5 text-netflix-red">
                 <Shield className="w-5" />
-                Admin Panel
+                {dict.auth.adminPanel}
               </DropdownMenuItem>
             </Link>
           </>
         )}
         <DropdownMenuItem>
           <SignOutButton>
-            <Button className="w-full font-semibold">Çıkış Yap</Button>
+            <Button className="w-full font-semibold">{dict.auth.signOut}</Button>
           </SignOutButton>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )
 }
-

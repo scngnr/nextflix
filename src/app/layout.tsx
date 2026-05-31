@@ -4,6 +4,7 @@ import { cn } from "~/lib/utils"
 import { ThemeProvider } from "~/components/theme-provider"
 import { LocaleProvider } from "~/components/locale-provider"
 import { ClerkProvider } from "@clerk/nextjs"
+import { trTR, enUS } from "@clerk/localizations"
 import { Toaster } from "~/components/ui/toaster"
 import { Analytics } from "@vercel/analytics/react"
 import { getLocale } from "~/lib/i18n/get-locale"
@@ -50,9 +51,11 @@ export default async function RootLayout({
 }) {
   const locale = await getLocale()
   const dictionary = getDictionary(locale)
+  const clerkLocalization = locale === "tr" ? trTR : enUS
 
   return (
     <ClerkProvider
+      localization={clerkLocalization}
       signInUrl={clerkSignInUrl}
       signUpUrl={clerkSignUpUrl}
       afterSignInUrl={clerkAfterSignInUrl}

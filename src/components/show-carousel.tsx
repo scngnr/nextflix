@@ -7,6 +7,8 @@ import Image from "next/image"
 import { cn } from "~/lib/utils"
 import { useMyList } from "~/components/my-list-provider"
 import { fetchTrailerKey } from "~/lib/trailer"
+import { useLocale } from "~/components/locale-provider"
+import { ShowMetaLine } from "~/components/show-meta-line"
 
 export function ShowsCarousel({
   title,
@@ -106,6 +108,7 @@ function CarouselTile({
   const [showTrailer, setShowTrailer] = useState(false)
   const timer = useRef<ReturnType<typeof setTimeout>>()
   const trailerTimer = useRef<ReturnType<typeof setTimeout>>()
+  const { dict } = useLocale()
   const { isSaved, toggle, isLiked, toggleLikeShow } = useMyList()
 
   const mediaType = show.title ? "movie" : "tv"
@@ -195,7 +198,9 @@ function CarouselTile({
             <button
               type="button"
               onClick={() => toggle(show.id, mediaType)}
-              aria-label={saved ? "Listemden çıkar" : "Listeme ekle"}
+              aria-label={
+                saved ? dict.common.removeFromList : dict.common.addToList
+              }
               className="flex h-7 w-7 items-center justify-center rounded-full border border-white/60 bg-black/40 text-white transition hover:border-white"
             >
               {saved ? (
@@ -207,7 +212,7 @@ function CarouselTile({
             <button
               type="button"
               onClick={() => toggleLikeShow(show.id, mediaType)}
-              aria-label={liked ? "Beğeniyi kaldır" : "Beğen"}
+              aria-label={liked ? dict.common.unlike : dict.common.likeAria}
               className={cn(
                 "flex h-7 w-7 items-center justify-center rounded-full border bg-black/40 transition hover:border-white",
                 liked
@@ -229,9 +234,15 @@ function CarouselTile({
           <p className="line-clamp-1 text-[11px] font-semibold text-white">
             {title}
           </p>
-          <p className="text-[11px] font-medium text-[#46d369]">
-            {Math.round(show.vote_average * 10)}% Eşleşme
-          </p>
+          <ShowMetaLine
+            show={show}
+            mediaType={mediaType}
+            size="sm"
+            showHd={false}
+            showYear={false}
+            showCertification={false}
+            className="mt-0.5"
+          />
         </div>
       </div>
     </div>
